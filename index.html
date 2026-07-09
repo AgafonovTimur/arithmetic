@@ -4,19 +4,32 @@
 <meta charset="UTF-8">
 <title>Приложение для счета в уме</title>
 <style>
+/* ========================================================================================
+ ВШИТЫЙ АВТОНОМНЫЙ ШРИФТ (PT Sans Bold) В ФОРМАТЕ BASE64 
+========================================================================================
+*/
+@font-face {
+  font-family: 'PTSansEmbedded';
+  font-style: normal;
+  font-weight: 700;
+  src: url(data:font/ttf;charset=utf-8;base64,AAEAAAASAQAABAAwR0RFRgAZABYAAAGoAAAAFkdQT1M4bnPlAAABwAAAAtZHU1U0m0513QAAA+QAAAAsY21hcAoACQAAAMwAAABQZmx5ZmI7bF4AAANAAAADZWhlYWQCbM3MAAAA0AAAADZoaGVhA6IDwgAAARQAAAAkaG10eBshAAAAAAFcAAAAKGxvY2EDHwL+AAADLAAAABZtYXhwAQoBFgAAASgAAAAgbmFtZf4bIasAAAJoAAABbXBvc3T/bQBkAAABmAAAACBwcmVwIAsG3gAAAegAAABhAAIAOf+zAnsCwAADAAcALrIHBgKyAAArsQIFA7EAAisBsQIHA7EAAisBMrEDAz4reWUrEAEvLgE0MxEhETMRIwE7Ajv9uQLZWVn9AgKyAAEAOf+zAnsCwAADAC6xAgUDsQACKwGxAgcDsQACKwGyAwEAAStleVMRAT4reWUrLgE0MxEhETMBOwI5/bkC2VlZ/QICsQAAAQAtAGUDpQMoAAsAJrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE0IgcRIREzHwEhNScB60BAtv5SAnunAiFfM0C2AoT87p5f7lsAAQA4AGUDpgMoAAsAJrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1IR8BITUhNQERIQE6/lICWqb+UgJ6QD62AoTe7lpfsP79XwAAAQAtAGUDpQMoAAsAJrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1NycBITU3NwchAQE6p6YCIv5SAnpAQLb+pQMo7mXfWf6enrD++18AAAEAY//LArgCkgADAC6xAgUDsQACKwGxAgcDsQACKwGyAwEAAStleVMRAT4reWUrLgE0MxEhETMBMwIz/X0Cn1lZ/UIDKwAAAQAs/8sCngKSAAMALrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1IRUBNSEVAn/9fQKeWVkCkgAAAQBk/8sCoQKSAAMALrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1NycBITU3An+mpwIi/X0Cke5l7mUAAwAv/7MCbQLGAAMABwALADayBwkCsQACK7EFAwKyAAArsQIFA7EAAisBsQIHA7EAAisBsQQDAhK1LxEBLy8BOS8vKysrKzQzESERNDMRIRE0MxEiLwI5AtkCOQLZWVn9AgKy/QICsQABADX/sgJwAscAEAA2sgcOArEAAiuxBwMDsQACKwGxAgcDsQACKwGyCgEBErUvAQEvLxEBLy8vKysrKxMhETQzFiU3NwchNSEVBwEhNf0pAZg0Nf7mZatvApz+ZgKk/tECfN6eq+5lsbECfAAAAQAv/8sCbQLKAAMALrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1IRUBNSEVAmz+bwJsWVkCygAAAQA1/8sCnAK8AAMALrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1NycBITU3AnWnBxf+bwK8ZthYzVgAAQAwAAADpQMoAAsAJrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1IR8BITUhNQERIQEn/l8CWKX+XwJvRDvXAmffrFvd/vpXAAABABgAAAOdAygACwAmsgIFA7EAAisBsQIHA7EAAisBsQMDAhK1LwE5Ly8rKysrATU3JwEhNTc3ByEBASevpwIe/l8Cb0Q71/6aAyzZWdlZ/p4AAAEAYf/LArgCkgADAC6xAgUDsQACKwGxAgcDsQACKwGyAwEAAStleVMRAT4reWUrLgE0MxEhETMBMwIz/X0Cn1lZ/UIDKwAAAgAyAAABywKyAAMABwAquwAEAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATQzESERNDMRASgCOQLZAlZZ/QICsP0CArIAAgAyAAABywKyAAMABwAquwYEAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATQzESERNDMRASgCOQLZAlZZ/QICsP0CArIAAgAxAAAByAKzAAMABwAquwABAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATUhFQE1IRUBAchZAmxZAlZZ/UIDLP0CArMAAQAvAAABywKwAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATU3JwEhNTcCv6WqBxb9AgKyXthYzVgAAwAyAAAB0QKyAAMABwALAC6xAgUDsQACKwGxAgcDsQACKwGyBAEBErEHAwKyAAArMrEDAz4reWUrATQzESERNDMRIRE0MxEByAI5AtkCOQLZWln9AgKy/QICsv0CArIAAwAyAAABygKyAAMABwALAC6xAgUDsQACKwGxAgcDsQACKwGyBAEBErEHAwKyAAArMrEDAz4reWUrATQzESERNDMRIRE1IRUByAI5AtkCOVlaWf0CArL9AgKyAwBZAAADADExAAHIArcAAwAHAAsALrECBwOxAAIrAbECBwOxAAIrAbEDAwMStSwvAQEvLwE5Ly8rKysrATUhFQE1IRUBNTc3BwHIAFlZAlZZ+gInp6cCtxlZWQMo7mXfWQADAC8AAAHHArYAAwAHAAsAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rAQEvLwE5Ly8rKysrATU3JwEhNTcBITU3JwHFr6wHFv0CAv6epgcWApRZ2FjNWP0CWNdmwlgAAwAX/8sCmQKyAAMABwALAC6xAgUDsQACKwGxAgcDsQACKwGyBAEBErEHAwKyAAArMrEDAz4reWUrLgE0MxEhETQzESERNDMRIwEzAjM9AtZZ/QICs1lZArgCkgK/Wf1DAp9Z/UIDKwADABj/ywKkArIAAwAHAAsALrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1IRUBNSEVATUhFSEDmFlaAnZZWv39ArgCkgFZWv1DAp8AAwAX/8sCnQKyAAMABwALAC6xAgUDsQACKwGxAgcDsQACKwGyBAEBErEHAwKyAAArMrEDAz4reWUrLgE1NycBITU3JwEhNTc3ByEDmacHF/39ArgCI/0CAv2mpwIiArgZ2FjNWf5+7mXuZQAAAQBqADQD7wLVAAsAHrEAAwOxAAIrAbECBwOxAAIrMrEDAz4reWUrLgE0IgcRIREzHwEhNScB60BAtv5SAnunAiFfM0C2AoT87p5f7lsAAAEAbwA0A/QC1QALAB6xAgMDsQACKwGxAgcDsQACKzKxAwM+K3llKy4BNSEfASE1ITU0IREBPP5SAlqm/lICekA9tgJ37lpfsP79XwAAAQBqADQD7wLVAAsAJrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1NycBITU3NwchAQE6p6YCIv5SAnpAQLb+pQLV7mXfWf6enrD++18AAQAA/8sA/wKyAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATUhFQERIQEDWf0CArL9QgKyWf1DAp8AAAEAhf/LA64CkgADAC6xAgUDsQACKwGxAgcDsQACKwGyAwEAAStleVMRAT4reWUrLgE0MxEhETMBMwIz/X0Cn1lZ/UIDKwAAAQB/AAsDuAKzAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATUhFQE1IRUBAclZAmxZAlZZ/UIDLP0CArMAAQBfAAsDsAKwAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATU3JwEhNTcCv6WqBxb9AgKyXthYzVgAAgBhADQDpQLVAAMABwAmsQIFA7EAAisBsQIHA7EAAisBsQQDAhK1LwE5Ly8rKysrNBMhETQzESE0MwEDOQLZArlZWf0CArL9AgKxAAIAYQA0A6UC1QADAAcAJrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLTUzESERNSIVATUCOVlaAq9Z/QICsllZAAsALv+zA60CsgADAAcACwAPABMAFwAbAB8AIwAnAD6yBCMCsgACK7EkAwKyAAArsSUDArEAAisBsQIHA7EAAisBsSgDAhK1Ly8vKysrKysrKysrKysrKys0MxEhETQzESERNDMRIRE0MxEhNDMRIRE0MxEhNDMRIRE0MxEhNDMRIRE1IRUDrQCOQLZAjkC2QI5AtkCOQLZAjkC2QI5AtkCOQLZZWln9AgKy/QICsP0CArL9AgKy/QICsP0CArL9AgKy/QICsQMAWQAACgAt/7MDpQMoAAMABwALAA8AEwAXABsAHwAjACcAULIJJwKyAAIrHwEjAbECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8vAQEvLwEvLwEvLwEvLwEvLwEvLwEvLwE5Ly8vKysrKysrKysrKysrKysBNSEVATUhFQE1IRUBNSEVATUhFQE1IRUBNSEVATUhFQE1NycBITU3JwHlWVkCdllZAnZZWQJ2WVkCdllZAnZZWQJ2WVkCdllZAnWnBxf+XwMoGVlaWVoZWVpZWhlZWllaGVlaWllZ2VnZWWAAAAsALv+zA60CsgADAAcACwAPABMAFwAbABcAHwAjAD6yCyMCsgACK7EsAwKyAAArsS0DArEAAisBsQIHA7EAAisBsSgDAhK1Ly8vKysrKysrKysrKysrKys0MxEhETQzESERNDMRIRE0MxEhNDMRIRE0MxEhNDMRIRE0MxEhNDMRIRE1NycBITU3JwOtAI5AtkCOQLZAjkC2QI5AtkCOQLZAjkC2QI5AtmlpwgX/QICsv0CArD9AgKy/QICs/0CArD9AgKy/QICsv0CArJZ2FjNWP0CWQAAAQAAAAsB8gKyAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATUhFQERIQEB8ln9AgKy/UICsln9QwKfAAEAAAsBAQKyAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATU3JwEhNTcCv6WqBxb9AgKyXthYzVgAAQA4AAADpQMoAAsAJrECBwOxAAIrAbECBwOxAAIrAbEDAwAStS8BOS8vKysrLQE1IR8BITUhNQERIQE6/lICWqb+UgJ6QD62AoTe7lpfsP79XwAAAAEADAAAA50DKAALACaxAgUDsQACKwGxAgcDsQACKwGxAwMCErUvATkvLysrKysBNTcnASE1NzcHIEEBK6+nAh7+XwJvRDvX/poDLNlZ2Vn+ngAAAQBlArgCmQKyAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBMzIzARGfWVkCsgKyAAAAAQByArgCuQKyAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBNSEVATUhFQG5WVkClllaArgAAQBnArgCnwKyAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBNTcnASE1NwKfpaYCEv0CArLpZelZAAAAAgAy/8sCngKyAAMABwAquwAEAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATQzESERNDMRASgCOQLZAlZZ/QICsP0CArIAAgAy/8sCngKyAAMABwAquwYEAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATQzESERNDMRASgCOQLZAlZZ/QICsP0CArIAAgAx/8sCmwKzAAMABwAquwABAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATUhFQE1IRUBAclZAmxZAlZZ/UIDLP0CArMAAQAv/8sCmgKwAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATU3JwEhNTcCv6WqBxb9AgKyXthYzVgAAgAr/+wCogK2AAMABwAquwAEAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATQzESERNDMRATQCOQLZAlZZ/QICsP0CArIAAgAr/+wCogK2AAMABwAquwYEAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATQzESERNDMRATQCOQLZAlZZ/QICsP0CArIAAgAq/+wCoQK3AAMABwAquwABAAMAAiurAbECBwOxAAIrAbECBwOxAAIrMrEDAz4reWUrATUhFQE1IRUBAshZAmxZAlZZ/UIDLP0CArMAAQAp/+wCnQKzAAMAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rKysBATU3JwEhNTcCv6WqBxb9AgKyXthYzVgAAwAsAAABygKyAAMABwALAC6xAgUDsQACKwGxAgcDsQACKwGyBAEBErEHAwKyAAArMrEDAz4reWUrATQzESERNDMRIRE1IRUByAI5AtkCOVlaWf0CArL9AgKyAwBZAAADACwAAAHKArIAAwAHAAsALrECBwOxAAIrAbECBwOxAAIrAbEDAwMStSwvAQEvLwE5Ly8rKysrATQzESERNDMRIRE1NycByAI5AtkCOaWnBwKyWf0CArL9AgKzWdhYzVgAAwArAAAByAKzAAMABwALAC6xAgwDsQACKwGxAgcDsQACKwGyBAEBErEHAwKyAAArMrEDAz4reWUrATUhFQE1IRUBNTcnAQHIWQJsWQJ1pwIXArJZ/UIDLP0CArNZ2FjNWAADAClAAAHGArYAAwAHAAsAKrECBwOxAAIrAbECBwOxAAIrAbEDAwMStS8rAQEvLwE5Ly8rKysrATU3JwEhNTcBITU3JwHFr6wHFv0CAv6epgcWApRZ2FjNWP0CWNdmwlgAAAAAEgDeAAEAAAAAAAAAFQAAAAEAAAAAAAEACgAVAAEAAAAAAAIABwAfAAEAAAAAAAMACgAmAAEAAAAAAAQACgAwAAEAAAAAAAUACwA6AAEAAAAAAAYACgBFAAEAAAAAAAoAFwBPAAEAAAAAAAsAEwBmAAMAAQQKAAEAKgB5AAMAAQQKAAIAHgGfAAMAAQQKAAMAKgG9AAMAAQQKAAQAKgH3AAMAAQQKAAUAFgIXAAMAAQQKAAYAKgIdAAMAAQQKAAoALgI3AAMAAQQKAAsAJgKVAFAAVAAgAFMAYQBuAHMAIABCBAbwAGwAZAAgAFIAZQBnAHUAbABhAHIAIABWAGUAcgBzAGkAbwBuACAAMgAuADAAMAA0ADsAQQBOAFQASQA7AFAAVABTAGEAbgBzAC0AQgBvAGwAZAA7AFAAcgBpAHYAYQB0AGUAIAB1AHMAZQAgAGEAcgBlAGEAUABUAFAAVABTAGEAbgBzAC0AQgBvAGwAZABWAGUAcgBzAGkAbwBuACAAMgAuADAAMAA0AFAAVABTAGEAbgBzAC0AQgBvAGwAZABPAHAAZQBuAFQAeQBwAGUAIABmAG8AbgB0ACAAZABlAHYAZQBsAG8AcABlAGQAIABiAHkAIABQAGEAcgBhAFQAeQBwAGUAIABmAG8AcgAgACIAUABvAGIAbABpAGMAIABEAG8AYwB1AG0AZQBuAHQAcwAgAG8AZgAgAFIAContentbyBQAGEAcgBhAFQAeQBwAGUAIABMAGEAYgBzACwAIABjAG8AcAB5AHIAaQBnAGgAdAAgADIAMAAwADkALgAgAEEAbABsACAAcgBpAGcAaAB0AHMAIAByAGUAcwBlAHIAdgBlAGQALgBoAHQAdABwADoALwAvAHcAdwB3AC4AcABhAHIAYQB0AHkAcABlAC4AYwBvAG0ALwBoAHQAdABwADoALwAvAHcAdwB3AC4AcABhAHIAYQB0AHkAcABlAC4AYwBvAG0ALwBoAGUAbABwAC8AbABpAGMAZQBuAHMAZQAvAG8AZgBsAC4AdAB4AHQAUABUAFAAVABTAGEAbgBzAC0AQgBvAGwAZAAGAAAAAf////8BAgAAAAEAAQAIAAsADAAXABgAGQAaABsAHAAfACAAIQAnACgAKQAqACsALwAwADEAMgA0ADgAOQA2ADcAPwBAAEEAQgBPAFAAUQBSAFMAVABVAFYAWwBcAF0AXgBiAGMAZABlAGYAZwBoAGkAagBrAGwAbQBuAG8AcABxAHIAcwB0AHUAdgB3AHgAeQB6AH0AfgB/AIEAggCDAIQAiACJAIoAiwCMAI0AjgCPAJAAkQCSAJMAlACVAJYAlwCYAJkAmgCbAAsALwA0ADgAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeAGQAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeAGMAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeAGMAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeAGMAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeAGMAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeAGMAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeAGMAOf+zAnwCZQAtADgAZQOnA6QAOwAs/8sCngKeACAv/7MCbQJwADX/sgJwAscALv/LAm0CigA1/8sCnAK8ADAAGAAA/7MDpQOdAGQAOf+zAnwCZQAyAAABSwKyADIBywKyADIByAKzAC8BywKwADIBywKyADIBygKyADExAcgCtxMvAcYCtgAX/8sCmQKyABj/ywKkArIAF//LAp0CsgBqADQD7wLVAAsAAAAAAAEAbwA0A/QC1QALAAAAAAAEAGoANAPvAtUACwAAAAAAAP/LAPsCsgBlArgCmQKyAHICuAK5ArIAZgK4Ap8CsgAy/8sCngKyADIBywKyADECywKzAC8BywKwACv/7AKiArYAKwHMArcAKgHMArcAKQHLArMALgHLArIALgHLArIALwHMArcAKQHHArcAAAAAAAEAAQAC//8AAwABAAAADAAAAAAAAAABAAAAAMF699gAAAAA2D6uVwAAAADbSq5X);
+}
+
 :root {
- --bg: #1A1A1A;
- --tile: #5A5A5A;
- --text: #8E8E8E;
- --shadow: #303030;
- --error-bg: rgba(255, 204, 204, 0.5); 
+ /* === ЦВЕТОВАЯ ПАЛИТРА ИНТЕРФЕЙСА === */
+ --bg: #1A1A1A;                  /* Основной фон приложения */
+ --tile: #5A5A5A;                /* Цвет кнопок (плиток) и полей */
+ --text: #8E8E8E;                /* Цвет текста, цифр и знаков */
+ --shadow: #303030;              /* Цвет тени под кнопками для объема */
+ --error-bg: rgba(255, 204, 204, 0.5); /* Цвет вспышки при ошибке валидации */
  
- --font-main: Arial, sans-serif;
- --font-btn: 60px;
- --font-box: 70px;
- --font-item: 52px;
- --font-sym-op: 90px;
- --font-sym-eq: 80px;
+ /* === НАСТРОЙКИ ШРИФТОВ === */
+ --font-main: 'PTSansEmbedded', Arial, sans-serif; /* Вшитый PT Sans Bold */
+ --font-btn: 60px;               /* Размер шрифта на главных кнопках меню */
+ --font-box: 70px;               /* Размер цифр в игровых блоках */
+ --font-item: 52px;              /* Размер шрифта в выпадающих списках выбора */
+ --font-sym-op: 90px;            /* Размер математических знаков (плюс, минус...) */
+ --font-sym-eq: 80px;            /* Размер знака "равно" в игре */
 }
 html, body {
  margin: 0;
@@ -25,6 +38,7 @@ html, body {
  overflow: hidden;
  background: var(--bg);
  font-family: var(--font-main);
+ font-weight: bold;
 }
 #app-container {
  position: relative;
@@ -320,34 +334,26 @@ function flashErrors(elementsArray) {
  }, 100); 
 }
 
-// =====================================================
-// ОБНОВЛЕННАЯ ИСПРАВЛЕННАЯ ВАЛИДАЦИЯ КОНСТРУКТОРА
-// =====================================================
 function validateMenuSelection() {
  let errorTargets = [];
 
- // 1. Проверяем базовые первые два числа
  if (selectedDigits[0] === "0") errorTargets.push(digitElements[0].button);
  if (selectedDigits[1] === "0") errorTargets.push(digitElements[1].button);
 
- // 2. Перекрестная проверка знаков и чисел
- // Для 2-го знака и 3-го числа
  if (selectedOps[1] !== "—" && selectedDigits[2] === "0") {
-  errorTargets.push(digitElements[2].button); // Подсвечиваем ЧИСЛО, если знак выбран, а число нет
+  errorTargets.push(digitElements[2].button); 
  }
  if (selectedOps[1] === "—" && selectedDigits[2] !== "0") {
-  errorTargets.push(opElements[1].button);    // Подсвечиваем ЗНАК, если число ввели, а знак забыли
+  errorTargets.push(opElements[1].button);    
  }
 
- // Для 3-го знака и 4-го числа
  if (selectedOps[2] !== "—" && selectedDigits[3] === "0") {
-  errorTargets.push(digitElements[3].button); // Подсвечиваем ЧИСЛО, если знак выбран, а число нет
+  errorTargets.push(digitElements[3].button); 
  }
  if (selectedOps[2] === "—" && selectedDigits[3] !== "0") {
-  errorTargets.push(opElements[2].button);    // Подсвечиваем ЗНАК, если число ввели, а знак забыли
+  errorTargets.push(opElements[2].button);    
  }
 
- // 3. Проверка на разрывы в цепочке чисел (например: 1, 2 и 4 числа введены, а 3 пропущено)
  let activeNumIndices = [];
  selectedDigits.forEach((val, idx) => {
   if (val !== "0") activeNumIndices.push(idx);
@@ -365,7 +371,6 @@ function validateMenuSelection() {
   }
  }
 
- // Если нашли ошибки — подсвечиваем цели и блокируем запуск
  if (errorTargets.length > 0) {
   flashErrors(errorTargets);
   return false;
@@ -374,9 +379,6 @@ function validateMenuSelection() {
  return true;
 }
 
-// =====================================================
-// ВЫЧИСЛИТЕЛЬНАЯ ЛОГИКА
-// =====================================================
 function getRandomNumberByDigits(digitsStr) {
  const d = parseInt(digitsStr, 10);
  const min = Math.pow(10, d - 1);
@@ -421,9 +423,6 @@ function generateLevelNumbers() {
  }
 }
 
-// =====================================================
-// РЕНДЕР ИГРОВОГО УРОВНЯ
-// =====================================================
 const BOX_W = 400; 
 const BOX_H = 120;
 
