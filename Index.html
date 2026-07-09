@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Приложение для счета в уме</title>
+<style>
+:root {
+ --bg: #1A1A1A;
+ --tile: #5A5A5A;
+ --text: #8E8E8E;
+ --shadow: #303030;
+ --error-bg: rgba(255, 204, 204, 0.5); 
+ 
+ --font-main: Arial, sans-serif;
+ --font-btn: 60px;
+ --font-box: 70px;
+ --font-item: 52px;
+ --font-sym-op: 90px;
+ --font-sym-eq: 80px;
+}
+html, body {
+ margin: 0;
+ width: 100%;
+ height: 100%;
+ overflow: hidden;
+ background: var(--bg);
+ font-family: var(--font-main);
+}
+#app-container {
+ position: relative;
+ width: 100%;
+ height: 100%;
+}
+#menu, #game {
+ position: absolute;
+ inset: 0;
+ width: 100%;
+ height: 100%;
+}
+#game {
+ display: none;
+}
+.button, .menu, .box {
+ position: absolute;
+ background: var(--tile);
+ color: var(--text);
+ border-radius: 14px;
+ box-shadow: 0 6px 0 var(--shadow);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ user-select: none;
+ transition: background-color 0.1s ease, left 0.2s ease, top 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+.error-highlight {
+ background-color: var(--error-bg) !important;
+ color: #1A1A1A !important;
+}
+.button {
+ cursor: pointer;
+ font-size: var(--font-btn);
+}
+.menu {
+ display: none;
+ overflow: hidden;
+ z-index: 10;
+}
+.item {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: var(--font-item);
+ cursor: pointer;
+ user-select: none;
+ width: 100%;
+}
+.item:hover {
+ background: #6A6A6A;
+ color: #FFF;
+}
+.box {
+ font-size: var(--font-box);
+}
+.sym {
+ position: absolute;
+ color: var(--text);
+ font-weight: bold;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ user-select: none;
+}
+.sym-op { font-size: var(--font-sym-op); }
+.sym-eq { font-size: var(--font-sym-eq); }
+</style>
+</head>
+<body>
+
+<div id="app-container">
+ <div id="menu"></div>
+
+ <div id="game"></div>
+</div>
+
+<script>
+// =====================================================
+// КОНФИГУРАЦИИ КООРДИНАТ МЕНЮ
+// =====================================================
+const ACTIONS_CFG_CLASSIC = [
+ {x: -420, y: -180, w: 220, h: 90}, 
+ {x: -420, y: 0, w: 220, h: 90},    
+ {x: -420, y: 180, w: 220, h: 90}   
+];
+const NUMBERS_CFG_CLASSIC = [
+ {x: -120, y: -280, w: 220, h: 90}, 
+ {x: -120, y: -90, w: 220, h: 90},  
+ {x: -120, y: 100, w: 220, h: 90},   
+ {x: -120, y: 290, w: 220, h: 90}    
+];
+const OK_CFG_CLASSIC = {x: 320, y: 0, w: 300, h: 120};
+
+const NUMBERS_CFG_LINE = [
+ {x: -630, y: -150, w: 180, h: 90}, 
+ {x: -210, y: -150, w: 180, h: 90}, 
+ {x: 210, y: -150, w: 180, h: 90},  
+ {x: 630, y: -150, w: 180, h: 90}   
+];
+const ACTIONS_CFG_LINE = [
+ {x: -420, y: -150, w: 180, h: 90},            
+ {x: 0, y: -150, w: 180, h: 90},               
+ {x: 420, y: -150, w: 180, h: 90}              
+];
+const OK_CFG_LINE = {x: 0, y: 150, w: 300, h: 120};
+
+const OPS_LIST_FIRST = ["+", "-", "×", "/"];
+const OPS_LIST_REST = ["—", "+", "-", "×", "/"]; 
+const DIGITS_LIST = ["0", "1", "2", "3", "4", "5", "6", "7"];
+
+// =====================================================
+// СОХРАНЕНИЕ НАСТРОЕК
+// =====================================================
+let selectedOps = JSON.parse(localStorage.getItem("math_ops")) || ["+", "—", "—"];
+let selectedDigits = JSON.parse(localStorage.getItem("math_digits")) || ["0", "0", "0", "0"];
+let isHorizontalMode = JSON.parse(localStorage.getItem("math_sync_mode")) || false;
+
+function saveSettings() {
+ localStorage.setItem("math_ops", JSON.stringify(selectedOps));
+ localStorage.setItem("math_digits", JSON.stringify(selectedDigits));
+ localStorage.setItem("math_sync_mode", JSON.stringify(isHorizontalMode));
+}
+
+let currentStep = 0; 
+let currentResults = [];
+let generatedNumbers = []; 
+let activeOpsCount = 0; 
+let openedMenu = null;
+
+let opElements = [];
+let digitElements = [];
+let okBtn;
+
+const menuScreen = document.getElementById("menu");
+const gameScreen = document.getElementById("game");
+
+// =====================================================
+// ЛОГИКА ИНТЕРФЕЙСА МЕНЮ
+// =====================================================
+function initMenu() {
+ menuScreen.innerHTML = "";
+ opElements = [];
+ digitElements = [];
+
+ ACTIONS_CFG_CLASSIC.forEach((_, idx) => {
+  const list = (idx === 0) ? OPS_LIST_FIRST : OPS_LIST_REST;
+  opElements.push(createMenuButton(list, idx, true));
+ });
+
+ NUMBERS_CFG_CLASSIC.forEach((_, idx) => {
+  digitElements.push(createMenuButton(DIGITS_LIST, idx, false));
+ });
+
+ okBtn = document.createElement("div");
+ okBtn.className = "button";
+ okBtn.textContent = "OK";
+ okBtn.onclick = (e) => {
+  e.stopPropagation(); 
+  clearErrors(); 
+  
+  if (validateMenuSelection()) {
+   currentStep = 0; 
+   generateLevelNumbers();
+   renderGameLayout();
+   menuScreen.style.display = "none";
+   gameScreen.style.display = "block";
+  }
+ };
+ menuScreen.appendChild(okBtn);
+
+ updateMenuLayout();
+}
+
+function createMenuButton(list, index, isOp) {
+ const b = document.createElement("div");
+ b.className = "button";
+ b.textContent = isOp ? selectedOps[index] : selectedDigits[index];
+
+ const m = document.createElement("div");
+ m.className = "menu";
+ 
+ list.forEach(v => {
+  const it = document.createElement("div");
+  it.className = "item";
+  it.textContent = v;
+  it.onclick = (e) => {
+   b.textContent = v;
+   if (isOp) {
+    selectedOps[index] = v;
+   } else {
+    selectedDigits[index] = v;
+   }
+   b.classList.remove("error-highlight"); 
+   saveSettings();
+   m.style.display = "none";
+   openedMenu = null;
+   e.stopPropagation();
+  };
+  m.appendChild(it);
+ });
+
+ b.onclick = (e) => {
+  if (openedMenu && openedMenu !== m) openedMenu.style.display = "none";
+  
+  const isOpen = m.style.display === "block";
+  m.style.display = isOpen ? "none" : "block";
+  openedMenu = isOpen ? null : m;
+  
+  if (!isOpen) {
+   const itemH = 90;
+   m.style.height = (itemH * list.length) + "px";
+   Array.from(m.children).forEach(child => child.style.height = itemH + "px");
+   
+   let alignValue = "2"; 
+   let baseCfgY = 0;
+
+   if (isHorizontalMode) {
+    baseCfgY = isOp ? ACTIONS_CFG_LINE[index].y : NUMBERS_CFG_LINE[index].y;
+    if (isOp) {
+     alignValue = (index === 2) ? "×" : "-";
+    } else {
+     alignValue = "2";
+    }
+   } else {
+    baseCfgY = isOp ? ACTIONS_CFG_CLASSIC[index].y : NUMBERS_CFG_CLASSIC[index].y;
+    if (isOp) {
+     alignValue = "-";
+    } else {
+     if (index === 0 || index === 1) alignValue = "2";
+     if (index === 2) alignValue = "4"; 
+     if (index === 3) alignValue = "7"; 
+    }
+   }
+   
+   let alignIndex = list.indexOf(alignValue);
+   if (alignIndex === -1) alignIndex = 0;
+   
+   const alignedTop = baseCfgY - (alignIndex * itemH);
+   m.style.top = `calc(50% + ${alignedTop}px)`;
+  }
+  
+  e.stopPropagation();
+ };
+
+ menuScreen.appendChild(b);
+ menuScreen.appendChild(m);
+
+ return { button: b, dropdown: m, list: list };
+}
+
+function updateMenuLayout() {
+ if (openedMenu) {
+  openedMenu.style.display = "none";
+  openedMenu = null;
+ }
+
+ const numCfgs = isHorizontalMode ? NUMBERS_CFG_LINE : NUMBERS_CFG_CLASSIC;
+ const opCfgs = isHorizontalMode ? ACTIONS_CFG_LINE : ACTIONS_CFG_CLASSIC;
+ const okCfg = isHorizontalMode ? OK_CFG_LINE : OK_CFG_CLASSIC;
+
+ digitElements.forEach((el, idx) => applyPositions(el, numCfgs[idx]));
+ opElements.forEach((el, idx) => applyPositions(el, opCfgs[idx]));
+
+ okBtn.style.width = okCfg.w + "px";
+ okBtn.style.height = okCfg.h + "px";
+ okBtn.style.left = `calc(50% + ${okCfg.x - okCfg.w/2}px)`; 
+ okBtn.style.top = `calc(50% + ${okCfg.y - okCfg.h/2}px)`; 
+}
+
+function applyPositions(el, cfg) {
+ const b = el.button;
+ const m = el.dropdown;
+
+ b.style.width = cfg.w + "px";
+ b.style.height = cfg.h + "px";
+ b.style.left = `calc(50% + ${cfg.x - cfg.w/2}px)`;
+ b.style.top = `calc(50% + ${cfg.y - cfg.h/2}px)`;
+
+ m.style.width = cfg.w + "px";
+ m.style.left = b.style.left;
+}
+
+function clearErrors() {
+ digitElements.forEach(el => el.button.classList.remove("error-highlight"));
+ opElements.forEach(el => el.button.classList.remove("error-highlight"));
+}
+
+function flashErrors(elementsArray) {
+ elementsArray.forEach(el => el.classList.add("error-highlight"));
+ setTimeout(() => {
+  elementsArray.forEach(el => el.classList.remove("error-highlight"));
+ }, 100); 
+}
+
+// =====================================================
+// ОБНОВЛЕННАЯ ИСПРАВЛЕННАЯ ВАЛИДАЦИЯ КОНСТРУКТОРА
+// =====================================================
+function validateMenuSelection() {
+ let errorTargets = [];
+
+ // 1. Проверяем базовые первые два числа
+ if (selectedDigits[0] === "0") errorTargets.push(digitElements[0].button);
+ if (selectedDigits[1] === "0") errorTargets.push(digitElements[1].button);
+
+ // 2. Перекрестная проверка знаков и чисел
+ // Для 2-го знака и 3-го числа
+ if (selectedOps[1] !== "—" && selectedDigits[2] === "0") {
+  errorTargets.push(digitElements[2].button); // Подсвечиваем ЧИСЛО, если знак выбран, а число нет
+ }
+ if (selectedOps[1] === "—" && selectedDigits[2] !== "0") {
+  errorTargets.push(opElements[1].button);    // Подсвечиваем ЗНАК, если число ввели, а знак забыли
+ }
+
+ // Для 3-го знака и 4-го числа
+ if (selectedOps[2] !== "—" && selectedDigits[3] === "0") {
+  errorTargets.push(digitElements[3].button); // Подсвечиваем ЧИСЛО, если знак выбран, а число нет
+ }
+ if (selectedOps[2] === "—" && selectedDigits[3] !== "0") {
+  errorTargets.push(opElements[2].button);    // Подсвечиваем ЗНАК, если число ввели, а знак забыли
+ }
+
+ // 3. Проверка на разрывы в цепочке чисел (например: 1, 2 и 4 числа введены, а 3 пропущено)
+ let activeNumIndices = [];
+ selectedDigits.forEach((val, idx) => {
+  if (val !== "0") activeNumIndices.push(idx);
+ });
+
+ if (activeNumIndices.length >= 2) {
+  let minIdx = activeNumIndices[0];
+  let maxIdx = activeNumIndices[activeNumIndices.length - 1];
+  for (let i = minIdx; i <= maxIdx; i++) {
+   if (selectedDigits[i] === "0") {
+    if (!errorTargets.includes(digitElements[i].button)) {
+     errorTargets.push(digitElements[i].button);
+    }
+   }
+  }
+ }
+
+ // Если нашли ошибки — подсвечиваем цели и блокируем запуск
+ if (errorTargets.length > 0) {
+  flashErrors(errorTargets);
+  return false;
+ }
+
+ return true;
+}
+
+// =====================================================
+// ВЫЧИСЛИТЕЛЬНАЯ ЛОГИКА
+// =====================================================
+function getRandomNumberByDigits(digitsStr) {
+ const d = parseInt(digitsStr, 10);
+ const min = Math.pow(10, d - 1);
+ const max = Math.pow(10, d) - 1;
+ return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function calculate(val1, val2, op) {
+ const operation = op === "×" ? "*" : op;
+ switch(operation) {
+  case "+": return val1 + val2;
+  case "-": return val1 - val2;
+  case "*": return val1 * val2;
+  case "/": return val2 !== 0 ? Math.round((val1 / val2) * 100) / 100 : 0;
+  default: return 0;
+ }
+}
+
+function generateLevelNumbers() {
+ generatedNumbers = [];
+ currentResults = [];
+
+ selectedDigits.forEach((digitVal) => {
+  if (digitVal !== "0") {
+   generatedNumbers.push(getRandomNumberByDigits(digitVal).toString());
+  }
+ });
+
+ activeOpsCount = generatedNumbers.length - 1;
+ if (activeOpsCount > 0) {
+  let res = calculate(parseFloat(generatedNumbers[0]), parseFloat(generatedNumbers[1]), selectedOps[0]);
+  currentResults.push(res.toString());
+
+  if (activeOpsCount > 1) {
+   res = calculate(res, parseFloat(generatedNumbers[2]), selectedOps[1]);
+   currentResults.push(res.toString());
+  }
+  if (activeOpsCount > 2) {
+   res = calculate(res, parseFloat(generatedNumbers[3]), selectedOps[2]);
+   currentResults.push(res.toString());
+  }
+ }
+}
+
+// =====================================================
+// РЕНДЕР ИГРОВОГО УРОВНЯ
+// =====================================================
+const BOX_W = 400; 
+const BOX_H = 120;
+
+function renderGameLayout() {
+ gameScreen.innerHTML = "";
+ const count = generatedNumbers.length; 
+
+ if (isHorizontalMode) {
+  let xOffsets = [];
+  let opOffsets = [];
+
+  if (count === 2) {
+   xOffsets = [-230, 230];
+   opOffsets = [0];
+  } else if (count === 3) {
+   xOffsets = [-460, 0, 460];
+   opOffsets = [-230, 230];
+  } else if (count === 4) {
+   xOffsets = [-690, -230, 230, 690];
+   opOffsets = [-460, 0, 460];
+  }
+
+  const Y_TOP_ROW = -140; 
+  const Y_EQ_ROW = 40;    
+  const Y_RES_ROW = 180;  
+
+  for (let i = 0; i < count; i++) {
+   createGameBox(xOffsets[i], Y_TOP_ROW, BOX_W, BOX_H, generatedNumbers[i]);
+  }
+
+  for (let i = 0; i < activeOpsCount; i++) {
+   createGameSym(opOffsets[i], Y_TOP_ROW, selectedOps[i], "sym-op");
+   createGameSym(xOffsets[i + 1], Y_EQ_ROW, "=", "sym-eq");
+   createGameBox(xOffsets[i + 1], Y_RES_ROW, BOX_W, BOX_H, currentStep > i ? currentResults[i] : "", `res-box-${i}`);
+  }
+
+ } else {
+  const ROW_OFFSETS = [-270, -90, 90, 270];
+  const DIST_EQ_TO_SIDE = 310;   
+  const DIST_EQ_TO_OP = 615;     
+
+  createGameBox(-DIST_EQ_TO_SIDE, ROW_OFFSETS[0], BOX_W, BOX_H, generatedNumbers[0]);
+
+  for (let i = 0; i < activeOpsCount; i++) {
+   const currentLineY = ROW_OFFSETS[i + 1]; 
+   const prevLineY = ROW_OFFSETS[i];       
+   const middleOpY = prevLineY + 90; 
+
+   createGameSym(-DIST_EQ_TO_OP, middleOpY, selectedOps[i], "sym-op");
+   createGameBox(-DIST_EQ_TO_SIDE, currentLineY, BOX_W, BOX_H, generatedNumbers[i + 1]);
+   createGameSym(0, currentLineY, "=", "sym-eq");
+   createGameBox(DIST_EQ_TO_SIDE, currentLineY, BOX_W, BOX_H, currentStep > i ? currentResults[i] : "", `res-box-${i}`);
+  }
+ }
+}
+
+function createGameBox(offsetX, offsetY, w, h, text, id = "") {
+ let d = document.createElement('div');
+ d.className = 'box';
+ d.textContent = text;
+ if (id) d.id = id;
+ d.style.width = w + 'px';
+ d.style.height = h + 'px';
+ d.style.left = `calc(50% + ${offsetX - w/2}px)`; 
+ d.style.top = `calc(50% + ${offsetY - h/2}px)`;  
+ gameScreen.appendChild(d);
+}
+
+function createGameSym(offsetX, offsetY, text, extraClass = "") {
+ let s = document.createElement('div');
+ s.className = `sym ${extraClass}`;
+ s.textContent = text;
+ s.style.width = '90px';  
+ s.style.height = '90px'; 
+ s.style.left = `calc(50% + ${offsetX - 45}px)`; 
+ s.style.top = `calc(50% + ${offsetY - 45}px)`;  
+ gameScreen.appendChild(s);
+}
+
+initMenu();
+
+document.addEventListener("keydown", e => {
+ if (e.code === "Space") {
+  e.preventDefault(); 
+  isHorizontalMode = !isHorizontalMode;
+  saveSettings();
+  if (menuScreen.style.display !== "none") {
+   updateMenuLayout();
+  } else if (gameScreen.style.display === "block") {
+   renderGameLayout();
+  }
+ }
+});
+
+document.addEventListener("click", () => {
+ if (gameScreen.style.display === "block") {
+  if (currentStep < activeOpsCount) {
+   const targetBox = document.getElementById(`res-box-${currentStep}`);
+   if (targetBox) {
+    targetBox.textContent = currentResults[currentStep];
+   }
+   currentStep++;
+  } else {
+   currentStep = 0;
+   generateLevelNumbers();
+   renderGameLayout();
+  }
+ }
+});
+
+document.addEventListener("wheel", e => {
+ if (gameScreen.style.display === "block") {
+  if (e.deltaY < 0) {
+   updateMenuLayout();
+   gameScreen.style.display = "none";
+   menuScreen.style.display = "block";
+  } else if (e.deltaY > 0) {
+   currentStep = 0;
+   generateLevelNumbers();
+   renderGameLayout();
+  }
+ }
+});
+
+document.addEventListener("click", () => {
+ if (menuScreen.style.display !== "none" && openedMenu) {
+  openedMenu.style.display = "none";
+  openedMenu = null;
+ }
+});
+</script>
+</body>
+</html>
