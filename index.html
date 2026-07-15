@@ -609,13 +609,13 @@ document.addEventListener("touchend", e => {
 // ПК: Колесико мыши работает симметрично свайпам
 document.addEventListener("wheel", e => {
  if (gameScreen.style.display === "block" && !isMobile) {
-  if (e.deltaY > 0) {
-   // Колесико вниз — меню настроек
+  if (e.deltaY < 0) {
+   // Колесико вверх — меню настроек
    gameScreen.style.display = "none";
    menuScreen.style.display = "block";
    adjustScale();
-  } else if (e.deltaY < 0) {
-   // Колесико вверх — новые числа
+  } else if (e.deltaY > 0) {
+   // Колесико вниз — новые числа
    currentStep = 0;
    generateLevelNumbers();
    renderGameLayout();
